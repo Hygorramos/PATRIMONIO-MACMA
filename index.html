@@ -374,7 +374,7 @@ input,select,textarea{font-family:inherit}
       <div class="fgroup">
         <div class="fgroup-title">Identificação</div>
         <div class="frow">
-          <div class="field"><label>Código patrimonial <span class="req">*</span></label><input id="i-code" class="code-input" placeholder="Ex.: 0001 ou PAT-0001"><span class="hint">Use o código de tombamento da empresa. Itens sem tombamento: use <b>ST</b> (esse pode repetir)</span></div>
+          <div class="field"><label>Código patrimonial</label><input id="i-code" class="code-input" placeholder="Ex.: PAT-0001 ou SEM TOMBAMENTO" oninput="checkCode()" autocomplete="off"><span class="hint" id="code-hint">Opcional. Em branco ou “SEM TOMBAMENTO” pode repetir; números não.</span></div>
           <div class="field"><label>Nome do item <span class="req">*</span></label><input id="i-name" placeholder="Ex.: Notebook Dell Latitude 5440"></div>
         </div>
         <div class="frow">
@@ -713,18 +713,34 @@ function openForm(id){
   $("i-supplier").value=a?.supplier||"";
   $("i-notes").value=a?.notes||"";
   rebuildSectorFilter();
+  checkCode();
   openModal("form");
   setTimeout(()=>$("i-name").focus(),120);
+}
+
+/* ---------- validação do código em tempo real ---------- */
+function isRepeatableCode(code){
+  const c=(code||"").trim();
+  if(!c) return true; // sem código (sem tombamento) pode repetir
+  const norm=c.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]/g,"");
+  return ["ST","SEMTOMBAMENTO","SEMTOMBO","SEMNUMERO","SEMPATRIMONIO"].includes(norm);
+}
+function setHint(text,color){ const el=$("code-hint"); if(!el)return; el.innerHTML=text; el.style.color=color||"var(--muted-2)"; }
+function checkCode(){
+  const el=$("i-code"); if(!el)return;
+  const code=el.value.trim();
+  if(!code){ el.style.borderColor=""; setHint("Opcional. Em branco ou “SEM TOMBAMENTO” pode repetir; números não.","var(--muted-2)"); return; }
+  if(isRepeatableCode(code)){ el.style.borderColor="var(--gold-line)"; setHint("Sem tombamento — este código pode repetir.","var(--gold)"); return; }
+  const dupe=assets.find(x=>(x.code||"").toLowerCase()===code.toLowerCase() && x.id!==editingId);
+  if(dupe){ el.style.borderColor="var(--bad)"; setHint("⚠ Já existe um item com este código.","var(--bad)"); }
+  else{ el.style.borderColor="var(--ok)"; setHint("✓ Código disponível.","var(--ok)"); }
 }
 
 async function saveAsset(){
   const code=$("i-code").value.trim();
   const name=$("i-name").value.trim();
-  $("i-code").style.borderColor=""; $("i-name").style.borderColor="";
-  if(!code){ toast("Informe o código do patrimônio"); $("i-code").focus(); $("i-code").style.borderColor="var(--bad)"; return; }
-  const norm=code.toUpperCase().replace(/[^A-Z0-9]/g,"");
-  const podeRepetir = norm==="ST"; // "ST"/"S/T" = sem tombamento: pode repetir
-  if(!podeRepetir){
+  $("i-name").style.borderColor="";
+  if(!isRepeatableCode(code)){
     const dupe=assets.find(x=>(x.code||"").toLowerCase()===code.toLowerCase() && x.id!==editingId);
     if(dupe){ toast("Já existe um item com o código "+code); $("i-code").focus(); $("i-code").style.borderColor="var(--bad)"; return; }
   }
@@ -870,9 +886,8 @@ function importCSV(input){
       let added=0, skipped=0; const now=Date.now();
       rows.slice(1).forEach((r,k)=>{
         const code=cell(r,idx.code), name=cell(r,idx.name);
-        if(!code||!name){ skipped++; return; }
-        const repeatable = code.toUpperCase().replace(/[^A-Z0-9]/g,"")==="ST";
-        if(!repeatable && assets.some(a=>(a.code||"").toLowerCase()===code.toLowerCase())){ skipped++; return; }
+        if(!name){ skipped++; return; }
+        if(!isRepeatableCode(code) && assets.some(a=>(a.code||"").toLowerCase()===code.toLowerCase())){ skipped++; return; }
         assets.push({ id:uid(), createdAt:now+k, code, name,
           category:cell(r,idx.category)||"Outros", status:cell(r,idx.status)||"Em uso",
           brand:cell(r,idx.brand), model:cell(r,idx.model), serial:cell(r,idx.serial),
@@ -896,5 +911,5 @@ function closeModal(which){ $(which+"-overlay").classList.remove("show"); if(!$(
 /* expose */
 window.setView=setView; window.openForm=openForm; window.openDetail=openDetail;
 window.saveAsset=saveAsset; window.deleteAsset=deleteAsset; window.seedExamples=seedExamples;
-window.exportCSV=exportCSV; window.importCSV=importCSV; window.closeModal=closeModal; window.renderList=renderList; window.clearFilters=clearFilters;
+window.exportCSV=exportCSV; window.importCSV=importCSV; window.checkCode=checkCode; window.closeModal=closeModal; window.renderList=renderList; window.clearFilters=clearFilters;
 </script>
