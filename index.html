@@ -350,6 +350,8 @@ input,select,textarea{font-family:inherit}
         <option value="value">Ordenar: maior valor</option>
       </select>
       <div class="spacer"></div>
+      <button class="btn-ghost" onclick="document.getElementById('import-file').click()"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0L5 7m3 3l3-3M2 12v2h12v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Importar</button>
+      <input type="file" id="import-file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)">
       <button class="btn-ghost" onclick="exportCSV()"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1v9m0 0L5 7m3 3l3-3M2 11v3h12v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Exportar</button>
     </div>
     <div id="cards" class="cards"></div>
@@ -372,7 +374,7 @@ input,select,textarea{font-family:inherit}
       <div class="fgroup">
         <div class="fgroup-title">Identificação</div>
         <div class="frow">
-          <div class="field"><label>Código patrimonial <span class="req">*</span></label><input id="i-code" class="code-input" placeholder="Ex.: 0001 ou PAT-0001"><span class="hint">Use o mesmo código de tombamento da sua empresa</span></div>
+          <div class="field"><label>Código patrimonial <span class="req">*</span></label><input id="i-code" class="code-input" placeholder="Ex.: 0001 ou PAT-0001"><span class="hint">Use o código de tombamento da empresa. Itens sem tombamento: use <b>ST</b> (esse pode repetir)</span></div>
           <div class="field"><label>Nome do item <span class="req">*</span></label><input id="i-name" placeholder="Ex.: Notebook Dell Latitude 5440"></div>
         </div>
         <div class="frow">
@@ -720,8 +722,12 @@ async function saveAsset(){
   const name=$("i-name").value.trim();
   $("i-code").style.borderColor=""; $("i-name").style.borderColor="";
   if(!code){ toast("Informe o código do patrimônio"); $("i-code").focus(); $("i-code").style.borderColor="var(--bad)"; return; }
-  const dupe=assets.find(x=>(x.code||"").toLowerCase()===code.toLowerCase() && x.id!==editingId);
-  if(dupe){ toast("Já existe um item com o código "+code); $("i-code").focus(); $("i-code").style.borderColor="var(--bad)"; return; }
+  const norm=code.toUpperCase().replace(/[^A-Z0-9]/g,"");
+  const podeRepetir = norm==="ST"; // "ST"/"S/T" = sem tombamento: pode repetir
+  if(!podeRepetir){
+    const dupe=assets.find(x=>(x.code||"").toLowerCase()===code.toLowerCase() && x.id!==editingId);
+    if(dupe){ toast("Já existe um item com o código "+code); $("i-code").focus(); $("i-code").style.borderColor="var(--bad)"; return; }
+  }
   if(!name){ toast("Informe o nome do item"); $("i-name").focus(); $("i-name").style.borderColor="var(--bad)"; return; }
   const data={
     name,
@@ -811,6 +817,78 @@ function exportCSV(){
   toast("Planilha exportada");
 }
 
+/* ---------- import CSV (restaura backup ou importa planilha) ---------- */
+function parseCSV(text,delim){
+  const rows=[]; let row=[]; let cur=""; let q=false;
+  for(let i=0;i<text.length;i++){
+    const c=text[i];
+    if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; }
+    else{
+      if(c==='"')q=true;
+      else if(c===delim){ row.push(cur); cur=""; }
+      else if(c==='\n'){ row.push(cur); rows.push(row); row=[]; cur=""; }
+      else if(c==='\r'){} else cur+=c;
+    }
+  }
+  if(cur!==""||row.length){ row.push(cur); rows.push(row); }
+  return rows;
+}
+function parseBRDate(s){
+  if(!s)return "";
+  s=s.trim();
+  const m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s);
+  if(m)return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`;
+  if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s;
+  return "";
+}
+function importCSV(input){
+  const file=input.files&&input.files[0];
+  if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async ()=>{
+    try{
+      let text=String(reader.result||"");
+      if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+      const first=(text.split("\n")[0]||"");
+      const delim = first.split(";").length>=first.split(",").length ? ";" : ",";
+      const rows=parseCSV(text,delim).filter(r=>r.some(c=>String(c).trim()!==""));
+      if(rows.length<2){ toast("Arquivo vazio ou inválido"); input.value=""; return; }
+      const head=rows[0].map(h=>String(h).trim().toLowerCase());
+      const col=(...names)=>{ for(const n of names){ const i=head.indexOf(n); if(i>=0)return i; } return -1; };
+      const idx={
+        code:col("código","codigo"), name:col("nome"),
+        category:col("categoria"), brand:col("marca"), model:col("modelo"),
+        serial:col("nº série","n° série","nº serie","serie","série"),
+        sector:col("setor"), responsible:col("responsável","responsavel"),
+        location:col("localização","localizacao"), status:col("status"),
+        date:col("data aquisição","data aquisicao","data"),
+        value:col("valor (r$)","valor"), nf:col("nota fiscal","nf"),
+        supplier:col("fornecedor"), notes:col("observações","observacoes","obs"),
+      };
+      if(idx.code<0||idx.name<0){ toast("O arquivo precisa ter as colunas Código e Nome"); input.value=""; return; }
+      const cell=(r,i)=> i>=0&&i<r.length? String(r[i]).trim() : "";
+      let added=0, skipped=0; const now=Date.now();
+      rows.slice(1).forEach((r,k)=>{
+        const code=cell(r,idx.code), name=cell(r,idx.name);
+        if(!code||!name){ skipped++; return; }
+        const repeatable = code.toUpperCase().replace(/[^A-Z0-9]/g,"")==="ST";
+        if(!repeatable && assets.some(a=>(a.code||"").toLowerCase()===code.toLowerCase())){ skipped++; return; }
+        assets.push({ id:uid(), createdAt:now+k, code, name,
+          category:cell(r,idx.category)||"Outros", status:cell(r,idx.status)||"Em uso",
+          brand:cell(r,idx.brand), model:cell(r,idx.model), serial:cell(r,idx.serial),
+          sector:cell(r,idx.sector), responsible:cell(r,idx.responsible), location:cell(r,idx.location),
+          date:parseBRDate(cell(r,idx.date)), value:parseValue(cell(r,idx.value)),
+          nf:cell(r,idx.nf), supplier:cell(r,idx.supplier), notes:cell(r,idx.notes) });
+        added++;
+      });
+      await persist(); render();
+      toast(added+" item(ns) importado(s)"+(skipped?` · ${skipped} ignorado(s)`:""));
+    }catch(e){ toast("Não consegui ler o arquivo"); }
+    input.value="";
+  };
+  reader.readAsText(file,"UTF-8");
+}
+
 /* ---------- modal control ---------- */
 function openModal(which){ $(which+"-overlay").classList.add("show"); document.body.style.overflow="hidden"; }
 function closeModal(which){ $(which+"-overlay").classList.remove("show"); if(!$("detail-overlay").classList.contains("show")&&!$("form-overlay").classList.contains("show"))document.body.style.overflow=""; }
@@ -818,5 +896,5 @@ function closeModal(which){ $(which+"-overlay").classList.remove("show"); if(!$(
 /* expose */
 window.setView=setView; window.openForm=openForm; window.openDetail=openDetail;
 window.saveAsset=saveAsset; window.deleteAsset=deleteAsset; window.seedExamples=seedExamples;
-window.exportCSV=exportCSV; window.closeModal=closeModal; window.renderList=renderList; window.clearFilters=clearFilters;
+window.exportCSV=exportCSV; window.importCSV=importCSV; window.closeModal=closeModal; window.renderList=renderList; window.clearFilters=clearFilters;
 </script>
