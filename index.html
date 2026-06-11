@@ -1,0 +1,690 @@
+[index.html](https://github.com/user-attachments/files/28857148/index.html)
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Patrimônio — Controle de Ativos</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrious/4.0.2/qrious.min.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --ink:#0F2433; --ink-soft:#21405A;
+  --bg:#F4F5F7; --card:#FFFFFF; --line:#E5E8EC; --line-2:#EEF0F3;
+  --text:#172530; --muted:#62707C; --muted-2:#8A97A2;
+  --gold:#8A621A; --gold-bg:#F7F0DD; --gold-line:#E7D6AC;
+  --ok:#16895C; --ok-bg:#E4F3EC; --warn:#B5781A; --warn-bg:#FBF0DC;
+  --info:#2767B8; --info-bg:#E6EEFA; --violet:#6A4FC2; --violet-bg:#ECE8FA;
+  --bad:#BC3B33; --bad-bg:#FBE6E4;
+  --shadow:0 1px 2px rgba(15,36,51,.04), 0 8px 24px rgba(15,36,51,.06);
+  --shadow-lg:0 18px 50px rgba(15,36,51,.20); --r:14px;
+}
+*{box-sizing:border-box} html,body{margin:0}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;-webkit-font-smoothing:antialiased;line-height:1.5}
+.mono{font-family:'JetBrains Mono',ui-monospace,Menlo,monospace}
+h1,h2,h3,h4{font-family:'Archivo',sans-serif;margin:0;color:var(--ink);letter-spacing:-.01em}
+button{font-family:inherit;cursor:pointer} input,select,textarea{font-family:inherit}
+::-webkit-scrollbar{width:10px;height:10px}::-webkit-scrollbar-thumb{background:#cfd6dd;border-radius:20px;border:2px solid var(--bg)}
+.auth-screen{position:fixed;inset:0;z-index:100;background:linear-gradient(160deg,#0F2433 0%, #14304a 55%, #0c1e2e 100%);display:none;align-items:center;justify-content:center;padding:20px;overflow-y:auto}
+.auth-screen.show{display:flex}
+.auth-card{background:var(--card);border-radius:20px;box-shadow:var(--shadow-lg);width:100%;max-width:440px;padding:30px 28px;margin:auto;animation:pop .25s cubic-bezier(.2,.9,.3,1)}
+.auth-brand{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+.auth-brand .seal{width:42px;height:42px;border-radius:10px;background:linear-gradient(145deg,#E7D6AC,#B98F3D);display:grid;place-items:center;color:#3A2A06;font-family:'Archivo';font-weight:800;font-size:16px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 2px 6px rgba(0,0,0,.2)}
+.auth-brand b{font-family:'Archivo';font-weight:800;font-size:21px;color:var(--ink);display:block;line-height:1}
+.auth-brand span{font-size:11px;color:var(--muted-2);letter-spacing:.14em;text-transform:uppercase}
+.auth-title{font-size:19px;margin:18px 0 3px}.auth-sub{font-size:13.5px;color:var(--muted);margin-bottom:20px}
+.auth-tabs{display:flex;gap:6px;background:var(--line-2);padding:4px;border-radius:11px;margin-bottom:20px}
+.auth-tab{flex:1;height:38px;border:none;border-radius:8px;background:transparent;font-weight:600;font-size:13.5px;color:var(--muted)}
+.auth-tab.active{background:var(--card);color:var(--ink);box-shadow:var(--shadow)}
+.auth-field{margin-bottom:14px}
+.auth-field label{display:block;font-size:12.5px;font-weight:600;color:var(--ink-soft);margin-bottom:6px}
+.auth-field input{width:100%;height:46px;border:1px solid var(--line);border-radius:11px;padding:0 14px;font-size:15px;color:var(--text);outline:none;transition:border-color .15s,box-shadow .15s}
+.auth-field input:focus{border-color:var(--ink-soft);box-shadow:0 0 0 3px rgba(33,64,90,.12)}
+.auth-btn{width:100%;height:48px;border:none;border-radius:12px;background:var(--ink);color:#fff;font-weight:700;font-size:15px;margin-top:6px;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.auth-btn:hover{background:#15334A} .auth-btn:disabled{opacity:.6;cursor:default}
+.auth-err{background:var(--bad-bg);color:var(--bad);font-size:13px;font-weight:600;padding:10px 13px;border-radius:10px;margin-bottom:14px;display:none}
+.auth-err.show{display:block}
+.auth-note{margin-top:18px;font-size:11.5px;color:var(--muted-2);text-align:center;line-height:1.5;border-top:1px solid var(--line-2);padding-top:14px}
+.auth-hint{font-size:11.5px;color:var(--muted-2);margin-top:5px}
+.cfg-box{background:var(--gold-bg);border:1px solid var(--gold-line);border-radius:12px;padding:16px 18px;margin-bottom:8px}
+.cfg-box h3{font-size:15px;color:var(--gold);margin-bottom:8px}
+.cfg-box p,.cfg-box li{font-size:13px;color:#6b5a35;line-height:1.6}
+.cfg-box ol{margin:8px 0 0;padding-left:20px}
+.cfg-box code{background:#fff;border:1px solid var(--gold-line);border-radius:5px;padding:1px 6px;font-family:'JetBrains Mono';font-size:12px;color:var(--gold)}
+.app-header{position:sticky;top:0;z-index:40;background:linear-gradient(180deg,var(--ink) 0%, #112A3D 100%);color:#EAF1F6;padding:0 18px;box-shadow:0 2px 16px rgba(8,22,33,.28)}
+.bar{max-width:1180px;margin:0 auto;display:flex;align-items:center;gap:14px;height:62px}
+.brand{display:flex;align-items:center;gap:11px;flex-shrink:0}
+.seal{width:38px;height:38px;border-radius:9px;flex-shrink:0;background:linear-gradient(145deg,#E7D6AC,#B98F3D);display:grid;place-items:center;color:#3A2A06;font-family:'Archivo';font-weight:800;font-size:15px;box-shadow:inset 0 0 0 1px rgba(255,255,255,.35),0 2px 6px rgba(0,0,0,.25)}
+.brand b{font-family:'Archivo';font-weight:800;font-size:18px;color:#fff;letter-spacing:-.02em;display:block;line-height:1}
+.brand span{font-size:11px;color:#9DB4C5;letter-spacing:.14em;text-transform:uppercase}
+.h-search{margin-left:auto;flex:1;max-width:300px;position:relative}
+.h-search input{width:100%;height:40px;border:none;border-radius:10px;padding:0 14px 0 38px;background:rgba(255,255,255,.10);color:#fff;font-size:14px;outline:none}
+.h-search input::placeholder{color:#9FB2C0}
+.h-search input:focus{background:rgba(255,255,255,.16);box-shadow:0 0 0 2px rgba(231,214,172,.5)}
+.h-search svg{position:absolute;left:12px;top:11px;opacity:.65}
+.h-add{height:40px;border:none;border-radius:10px;padding:0 16px;flex-shrink:0;background:linear-gradient(145deg,#EAD9AE,#C49A47);color:#3A2A06;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:7px;box-shadow:0 2px 8px rgba(0,0,0,.22)}
+.h-add:hover{filter:brightness(1.05)} .h-add .plus{font-size:18px;line-height:1;margin-top:-1px}
+.user-chip{display:flex;align-items:center;gap:9px;flex-shrink:0;padding-left:6px}
+.avatar{width:34px;height:34px;border-radius:50%;background:#2c5375;display:grid;place-items:center;color:#fff;font-weight:700;font-size:14px;font-family:'Archivo';flex-shrink:0}
+.user-chip .ud{line-height:1.15;min-width:0}
+.user-chip .un{font-size:13px;font-weight:700;color:#fff;white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis}
+.user-chip .ur{font-size:10.5px;color:#9DB4C5;text-transform:uppercase;letter-spacing:.06em}
+.logout-btn{width:34px;height:34px;border-radius:9px;border:none;background:rgba(255,255,255,.10);color:#cdd9e2;display:grid;place-items:center;flex-shrink:0}
+.logout-btn:hover{background:rgba(255,255,255,.18);color:#fff}
+.tabs-row{max-width:1180px;margin:0 auto;display:flex;align-items:center;height:46px;gap:4px}
+.tabs{display:flex;gap:4px;align-items:flex-end;height:46px}
+.tab{background:none;border:none;color:#9DB4C5;font-weight:600;font-size:14px;padding:0 16px;height:46px;position:relative}
+.tab.active{color:#fff}
+.tab.active::after{content:"";position:absolute;left:14px;right:14px;bottom:0;height:3px;border-radius:3px 3px 0 0;background:linear-gradient(90deg,#E7D6AC,#C49A47)}
+.sync-chip{margin-left:auto;display:flex;align-items:center;gap:7px;font-size:11.5px;color:#9DB4C5;padding:5px 10px;border-radius:8px}
+.sync-dot{width:7px;height:7px;border-radius:50%;background:#3fb984;box-shadow:0 0 0 3px rgba(63,185,132,.25)}
+.sync-chip.busy .sync-dot{background:#e0b341;box-shadow:0 0 0 3px rgba(224,179,65,.25);animation:pulse 1s infinite}
+@keyframes pulse{50%{opacity:.4}}
+.wrap{max-width:1180px;margin:0 auto;padding:24px 18px 120px}
+#app{display:none} #app.show{display:block}
+.view{display:none;animation:fade .25s ease}.view.show{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+@keyframes pop{from{opacity:0;transform:translateY(14px) scale(.98)}to{opacity:1;transform:none}}
+.section-title{display:flex;align-items:baseline;gap:10px;margin:4px 0 16px}
+.section-title h2{font-size:21px}.section-title .count{font-size:13px;color:var(--muted);font-weight:500}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+.kpi{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:var(--shadow);overflow:hidden}
+.kpi .lab{font-size:12px;color:var(--muted);font-weight:600;letter-spacing:.04em;text-transform:uppercase;display:flex;align-items:center;gap:7px}
+.kpi .num{font-family:'Archivo';font-weight:800;font-size:30px;color:var(--ink);margin-top:8px;letter-spacing:-.02em;line-height:1}
+.kpi .sub{font-size:12px;color:var(--muted-2);margin-top:5px}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block}
+.grid-2{display:grid;grid-template-columns:1.1fr .9fr;gap:16px}
+.panel{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;box-shadow:var(--shadow);margin-bottom:16px}
+.panel h3{font-size:15px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.panel h3 small{font-weight:500;color:var(--muted-2);font-size:12px;font-family:'Inter'}
+.barrow{display:flex;align-items:center;gap:12px;margin-bottom:11px}
+.barrow .nm{width:140px;font-size:13px;color:var(--text);font-weight:500;flex-shrink:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.bar-track{flex:1;height:9px;background:var(--line-2);border-radius:6px;overflow:hidden}
+.bar-fill{height:100%;border-radius:6px;background:linear-gradient(90deg,var(--ink-soft),var(--ink));transition:width .6s cubic-bezier(.2,.8,.2,1)}
+.barrow .vl{width:30px;text-align:right;font-size:13px;font-weight:700;color:var(--ink);font-family:'JetBrains Mono'}
+.donut-wrap{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.donut{width:140px;height:140px;border-radius:50%;flex-shrink:0;position:relative}
+.donut::after{content:"";position:absolute;inset:24px;background:var(--card);border-radius:50%;box-shadow:inset 0 0 0 1px var(--line-2)}
+.donut .center{position:absolute;inset:0;display:grid;place-items:center;text-align:center;z-index:2}
+.donut .center b{font-family:'Archivo';font-weight:800;font-size:24px;color:var(--ink);display:block;line-height:1}
+.donut .center small{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.legend{display:flex;flex-direction:column;gap:9px;flex:1;min-width:150px}
+.leg{display:flex;align-items:center;gap:9px;font-size:13px}.leg .nm{flex:1;color:var(--text)}
+.leg .vl{font-weight:700;font-family:'JetBrains Mono';color:var(--ink)}
+.recent{display:flex;flex-direction:column}
+.recent-item{display:flex;align-items:center;gap:12px;padding:11px 0;border-bottom:1px solid var(--line-2);cursor:pointer}
+.recent-item:last-child{border-bottom:none}.recent-item:hover .ri-name{color:var(--gold)}
+.ri-code{font-family:'JetBrains Mono';font-size:11px;font-weight:700;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-line);padding:3px 7px;border-radius:6px;flex-shrink:0}
+.ri-name{font-weight:600;font-size:14px;flex:1;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.ri-meta{font-size:12px;color:var(--muted)}
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px;align-items:center}
+.filters select{height:40px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:0 32px 0 12px;font-size:13.5px;color:var(--text);outline:none;cursor:pointer;appearance:none;-webkit-appearance:none;box-shadow:var(--shadow);background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2362707C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.filters select:focus{border-color:var(--ink-soft)}
+.btn-ghost{height:40px;border:1px solid var(--line);border-radius:10px;background:var(--card);padding:0 14px;font-size:13.5px;font-weight:600;color:var(--ink-soft);display:inline-flex;align-items:center;gap:7px;box-shadow:var(--shadow)}
+.btn-ghost:hover{border-color:var(--ink-soft);color:var(--ink)} .filters .spacer{flex:1}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px}
+.acard{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:16px 16px 14px;box-shadow:var(--shadow);cursor:pointer;transition:transform .14s,box-shadow .14s,border-color .14s;display:flex;flex-direction:column;gap:11px}
+.acard:hover{transform:translateY(-3px);box-shadow:0 10px 28px rgba(15,36,51,.12);border-color:#d4dae0}
+.acard-top{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.code-badge{font-family:'JetBrains Mono';font-weight:700;font-size:12px;color:var(--gold);background:var(--gold-bg);border:1px solid var(--gold-line);padding:4px 9px;border-radius:7px;letter-spacing:.02em}
+.code-badge.empty{color:var(--muted-2);background:var(--line-2);border-color:var(--line)}
+.pill{font-size:11px;font-weight:700;padding:4px 10px;border-radius:20px;display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.acard-name{font-family:'Archivo';font-weight:700;font-size:16.5px;color:var(--ink);line-height:1.25}
+.acard-tags{display:flex;flex-wrap:wrap;gap:6px}
+.tag{font-size:11.5px;color:var(--muted);background:var(--line-2);padding:3px 9px;border-radius:6px;font-weight:500}
+.tag b{color:var(--text);font-weight:600}
+.acard-foot{display:flex;gap:14px;flex-wrap:wrap;padding-top:11px;border-top:1px solid var(--line-2);margin-top:auto}
+.ff{display:flex;align-items:center;gap:6px;font-size:12.5px;color:var(--muted)}.ff b{color:var(--text);font-weight:600}.ff svg{opacity:.5;flex-shrink:0}
+.s-uso{background:var(--ok-bg);color:var(--ok)}.s-uso .dot{background:var(--ok)}
+.s-manut{background:var(--warn-bg);color:var(--warn)}.s-manut .dot{background:var(--warn)}
+.s-disp{background:var(--info-bg);color:var(--info)}.s-disp .dot{background:var(--info)}
+.s-empr{background:var(--violet-bg);color:var(--violet)}.s-empr .dot{background:var(--violet)}
+.s-baixa{background:var(--bad-bg);color:var(--bad)}.s-baixa .dot{background:var(--bad)}
+.utable{width:100%;border-collapse:collapse}
+.utable th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted-2);font-weight:700;padding:10px 12px;border-bottom:1px solid var(--line)}
+.utable td{padding:12px;border-bottom:1px solid var(--line-2);font-size:14px}.utable tr:last-child td{border-bottom:none}
+.role-badge{font-size:11px;font-weight:700;padding:3px 9px;border-radius:20px}
+.role-admin{background:var(--gold-bg);color:var(--gold)}.role-user{background:var(--line-2);color:var(--muted)}
+.u-remove{border:1px solid var(--bad-bg);background:var(--bad-bg);color:var(--bad);font-weight:600;font-size:12.5px;padding:6px 12px;border-radius:8px}
+.u-remove:hover{background:#f7d9d6}.u-you{font-size:11px;color:var(--muted-2)}
+.empty{text-align:center;padding:60px 20px;color:var(--muted)}
+.empty .ic{width:64px;height:64px;border-radius:16px;background:var(--gold-bg);border:1px solid var(--gold-line);display:grid;place-items:center;margin:0 auto 16px}
+.empty h3{font-size:18px;margin-bottom:6px}.empty p{font-size:14px;max-width:380px;margin:0 auto 20px}
+.empty-actions{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn-primary{height:42px;border:none;border-radius:10px;padding:0 20px;font-weight:700;font-size:14px;background:var(--ink);color:#fff;display:inline-flex;align-items:center;gap:8px;box-shadow:var(--shadow)}
+.btn-primary:hover{background:#15334A}
+.btn-gold{height:42px;border:1px solid var(--gold-line);border-radius:10px;padding:0 18px;font-weight:700;font-size:14px;background:var(--gold-bg);color:var(--gold);display:inline-flex;align-items:center;gap:8px}
+.btn-gold:hover{background:#F2E8CC}
+.overlay{position:fixed;inset:0;background:rgba(11,26,38,.55);backdrop-filter:blur(3px);z-index:60;display:none;align-items:flex-start;justify-content:center;padding:30px 16px;overflow-y:auto}
+.overlay.show{display:flex}
+.modal{background:var(--card);border-radius:18px;width:100%;max-width:620px;box-shadow:var(--shadow-lg);animation:pop .22s cubic-bezier(.2,.9,.3,1);margin:auto}
+.modal-head{display:flex;align-items:flex-start;gap:14px;padding:22px 24px;border-bottom:1px solid var(--line-2)}
+.modal-head .mh-text{flex:1;min-width:0}.modal-head h2{font-size:20px;line-height:1.2}
+.modal-head .mh-sub{display:flex;align-items:center;gap:8px;margin-top:8px;flex-wrap:wrap}
+.x-close{width:34px;height:34px;border-radius:9px;border:1px solid var(--line);background:var(--card);color:var(--muted);font-size:18px;flex-shrink:0;display:grid;place-items:center}
+.x-close:hover{background:var(--line-2);color:var(--text)}
+.modal-body{padding:20px 24px}
+.det-grid{display:grid;grid-template-columns:1fr 1fr;gap:2px 24px;margin-bottom:6px}
+.det-f{padding:11px 0;border-bottom:1px solid var(--line-2)}
+.det-f .k{font-size:11px;color:var(--muted-2);text-transform:uppercase;letter-spacing:.06em;font-weight:600;margin-bottom:3px}
+.det-f .v{font-size:14.5px;color:var(--text);font-weight:500;word-break:break-word}
+.det-f .v.mono{font-family:'JetBrains Mono';font-weight:600}.det-f.full{grid-column:1/-1}
+.qr-box{margin-top:18px;background:#F9FAFB;border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;gap:18px;align-items:center}
+.qr-canvas{width:120px;height:120px;background:#fff;border:1px solid var(--line);border-radius:10px;display:grid;place-items:center;flex-shrink:0;padding:8px}
+.qr-canvas canvas{max-width:100%;height:auto}.qr-fallback{font-size:11px;color:var(--muted);text-align:center;padding:10px}
+.qr-txt h4{font-size:14px;margin-bottom:4px}.qr-txt p{font-size:12.5px;color:var(--muted);margin:0}
+.det-meta{font-size:11.5px;color:var(--muted-2);margin-top:14px}
+.det-actions{display:flex;gap:10px;margin-top:16px;flex-wrap:wrap}
+.btn-edit{flex:1;min-width:120px;height:44px;border:1px solid var(--line);border-radius:11px;background:var(--card);font-weight:700;font-size:14px;color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+.btn-edit:hover{background:var(--line-2)}
+.btn-del{height:44px;border:1px solid var(--bad-bg);border-radius:11px;background:var(--bad-bg);color:var(--bad);font-weight:700;font-size:14px;padding:0 18px;display:inline-flex;align-items:center;gap:8px}
+.btn-del:hover{background:#F7D9D6}
+.fgroup{margin-bottom:22px}
+.fgroup-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--gold);margin-bottom:12px;display:flex;align-items:center;gap:8px}
+.fgroup-title::after{content:"";flex:1;height:1px;background:var(--gold-line);opacity:.6}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}.frow.one{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:12.5px;font-weight:600;color:var(--ink-soft)}.field label .req{color:var(--bad)}
+.field input,.field select,.field textarea{height:42px;border:1px solid var(--line);border-radius:10px;padding:0 12px;font-size:14px;color:var(--text);background:var(--card);outline:none;transition:border-color .15s,box-shadow .15s;width:100%}
+.field textarea{height:auto;min-height:72px;padding:10px 12px;resize:vertical;line-height:1.5}
+.field select{appearance:none;-webkit-appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg width='10' height='6' viewBox='0 0 10 6' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1l4 4 4-4' stroke='%2362707C' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--ink-soft);box-shadow:0 0 0 3px rgba(33,64,90,.12)}
+.field input.code-input{font-family:'JetBrains Mono';font-weight:700;letter-spacing:.03em}.field .hint{font-size:11px;color:var(--muted-2)}
+.modal-foot{display:flex;gap:10px;justify-content:flex-end;padding:18px 24px;border-top:1px solid var(--line-2);position:sticky;bottom:0;background:var(--card);border-radius:0 0 18px 18px}
+.btn-cancel{height:44px;border:1px solid var(--line);border-radius:11px;background:var(--card);padding:0 20px;font-weight:600;font-size:14px;color:var(--muted)}
+.btn-cancel:hover{background:var(--line-2);color:var(--text)}
+.btn-save{height:44px;border:none;border-radius:11px;background:var(--ink);color:#fff;padding:0 26px;font-weight:700;font-size:14px;display:inline-flex;align-items:center;gap:8px}
+.btn-save:hover{background:#15334A}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);z-index:120;background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:14px;font-weight:600;box-shadow:var(--shadow-lg);opacity:0;transition:.28s;display:flex;align-items:center;gap:9px;pointer-events:none}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}.toast .tdot{width:8px;height:8px;border-radius:50%;background:#7BE0AE}
+.boot{display:flex;flex-direction:column;align-items:center;gap:14px;padding:120px 20px;color:var(--muted)}
+.spin{width:34px;height:34px;border:3px solid var(--line);border-top-color:var(--gold);border-radius:50%;animation:rot .8s linear infinite}
+@keyframes rot{to{transform:rotate(360deg)}}
+#full-boot{position:fixed;inset:0;z-index:90;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;color:var(--muted)}
+@media(max-width:900px){.kpis{grid-template-columns:1fr 1fr}.grid-2{grid-template-columns:1fr}}
+@media(max-width:680px){
+  .bar{height:auto;flex-wrap:wrap;padding:11px 0;gap:10px}.brand span{display:none}
+  .h-search{order:5;flex-basis:100%;max-width:none;margin:0}.h-add span{display:none}.h-add{padding:0 13px}
+  .user-chip .ud{display:none}.det-grid,.frow{grid-template-columns:1fr}.qr-box{flex-direction:column;text-align:center}
+  .overlay{padding:0}.modal{max-width:none;border-radius:18px 18px 0 0;min-height:100vh;margin:0;align-self:stretch}
+  .modal-foot{border-radius:0}.kpi .num{font-size:26px}.wrap{padding:18px 14px 110px}.tab{font-size:13px;padding:0 12px}
+  .utable th:nth-child(2),.utable td:nth-child(2){display:none}
+}
+@media print{.app-header,.filters,.det-actions,.x-close{display:none!important}body{background:#fff}}
+</style>
+</head>
+<body>
+
+<!-- BOOT -->
+<div id="full-boot"><div class="spin"></div><div>Conectando ao banco de dados…</div></div>
+
+<!-- AUTH -->
+<div class="auth-screen" id="auth">
+  <div class="auth-card">
+    <div class="auth-brand"><div class="seal">PT</div><div><b>Patrimônio</b><span>Controle de Ativos</span></div></div>
+
+    <!-- CONFIG NEEDED -->
+    <div id="cfg-needed" style="display:none">
+      <h2 class="auth-title">Configuração necessária</h2>
+      <p class="auth-sub">Este sistema precisa do seu projeto Firebase para funcionar.</p>
+      <div class="cfg-box">
+        <h3>Como ativar</h3>
+        <p>Abra o arquivo <code>index.html</code> e cole as chaves do seu Firebase no bloco <code>firebaseConfig</code> (lá no início do <code>&lt;script&gt;</code>). Depois publique no GitHub Pages.</p>
+        <ol><li>Crie um projeto em <code>console.firebase.google.com</code></li><li>Ative <b>Authentication → E-mail/senha</b></li><li>Crie o <b>Firestore Database</b></li><li>Copie a config do app web e cole no arquivo</li></ol>
+      </div>
+      <p class="auth-note">O passo a passo completo está no arquivo <b>GUIA-INSTALACAO.md</b> que veio junto.</p>
+    </div>
+
+    <!-- NORMAL AUTH -->
+    <div id="auth-main" style="display:none">
+      <h2 class="auth-title" id="auth-title">Entrar</h2>
+      <p class="auth-sub" id="auth-sub">Acesse com sua conta da empresa.</p>
+      <div class="auth-tabs" id="auth-tabs">
+        <button class="auth-tab active" id="tab-login" onclick="authTab('login')">Entrar</button>
+        <button class="auth-tab" id="tab-register" onclick="authTab('register')">Criar conta</button>
+      </div>
+      <div class="auth-err" id="auth-err"></div>
+      <div id="form-login">
+        <div class="auth-field"><label>E-mail</label><input id="l-email" type="email" autocomplete="username" placeholder="voce@empresa.com"></div>
+        <div class="auth-field"><label>Senha</label><input id="l-pass" type="password" autocomplete="current-password" placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()"></div>
+        <button class="auth-btn" id="btn-login" onclick="doLogin()">Entrar</button>
+      </div>
+      <div id="form-register" style="display:none">
+        <div class="auth-field"><label>Nome completo</label><input id="r-name" placeholder="Ex.: João Silva"></div>
+        <div class="auth-field"><label>E-mail</label><input id="r-email" type="email" placeholder="voce@empresa.com"></div>
+        <div class="auth-field"><label>Senha</label><input id="r-pass" type="password" placeholder="mínimo 6 caracteres"></div>
+        <div class="auth-field"><label>Código de acesso da empresa</label><input id="r-access" placeholder="fornecido pelo administrador"><div class="auth-hint">Peça este código a quem administra o sistema.</div></div>
+        <button class="auth-btn" id="btn-register" onclick="doRegister()">Criar conta</button>
+      </div>
+      <div id="form-first" style="display:none">
+        <div class="auth-field"><label>Seu nome</label><input id="f-name" placeholder="Ex.: João Silva"></div>
+        <div class="auth-field"><label>Seu e-mail</label><input id="f-email" type="email" placeholder="voce@empresa.com"></div>
+        <div class="auth-field"><label>Sua senha</label><input id="f-pass" type="password" placeholder="mínimo 6 caracteres"></div>
+        <div class="auth-field"><label>Código de acesso da empresa <span style="color:var(--bad)">*</span></label><input id="f-access" placeholder="crie um código para liberar usuários"><div class="auth-hint">Quem criar conta depois vai precisar deste código. Guarde-o.</div></div>
+        <button class="auth-btn" id="btn-first" onclick="doFirst()">Criar empresa e administrador</button>
+      </div>
+      <div class="auth-note">Sistema interno para sua equipe, com banco de dados na nuvem (Firebase). As senhas são protegidas pelo próprio Firebase.</div>
+    </div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+<header class="app-header">
+  <div class="bar">
+    <div class="brand"><div class="seal">PT</div><div><b>Patrimônio</b><span>Controle de Ativos</span></div></div>
+    <div class="h-search"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="7" cy="7" r="5" stroke="#9FB2C0" stroke-width="1.6"/><path d="M11 11l3 3" stroke="#9FB2C0" stroke-width="1.6" stroke-linecap="round"/></svg><input id="search" type="search" placeholder="Buscar patrimônio…" autocomplete="off"></div>
+    <button class="h-add" onclick="openForm()"><span class="plus">+</span><span>Novo item</span></button>
+    <div class="user-chip"><div class="avatar" id="u-avatar">U</div><div class="ud"><div class="un" id="u-name">Usuário</div><div class="ur" id="u-role">membro</div></div><button class="logout-btn" onclick="doLogout()" title="Sair"><svg width="16" height="16" viewBox="0 0 16 16" fill="none"><path d="M6 14H3V2h3M10 11l3-3-3-3M13 8H6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div>
+  </div>
+  <div class="tabs-row">
+    <nav class="tabs">
+      <button class="tab active" data-view="dash" onclick="setView('dash')">Painel</button>
+      <button class="tab" data-view="list" onclick="setView('list')">Patrimônios</button>
+      <button class="tab" data-view="users" id="tab-users" onclick="setView('users')" style="display:none">Usuários</button>
+    </nav>
+    <div class="sync-chip" id="sync-chip"><span class="sync-dot"></span><span id="sync-text">tempo real</span></div>
+  </div>
+</header>
+<div class="wrap">
+  <div id="boot" class="boot"><div class="spin"></div><div>Carregando dados da equipe…</div></div>
+  <section id="view-dash" class="view">
+    <div class="kpis" id="kpis"></div>
+    <div class="grid-2"><div class="panel"><h3>Distribuição por categoria <small id="cat-total"></small></h3><div id="cat-bars"></div></div><div class="panel"><h3>Situação dos ativos</h3><div class="donut-wrap"><div class="donut" id="donut"><div class="center"><b id="donut-num">0</b><small>itens</small></div></div><div class="legend" id="status-legend"></div></div></div></div>
+    <div class="grid-2"><div class="panel"><h3>Distribuição por setor</h3><div id="sector-bars"></div></div><div class="panel"><h3>Cadastrados recentemente</h3><div class="recent" id="recent"></div></div></div>
+  </section>
+  <section id="view-list" class="view">
+    <div class="section-title"><h2>Patrimônios</h2><span class="count" id="list-count"></span></div>
+    <div class="filters">
+      <select id="f-cat" onchange="renderList()"><option value="">Todas categorias</option></select>
+      <select id="f-status" onchange="renderList()"><option value="">Todos os status</option></select>
+      <select id="f-sector" onchange="renderList()"><option value="">Todos os setores</option></select>
+      <select id="f-sort" onchange="renderList()"><option value="code">Ordenar: código</option><option value="name">Ordenar: nome</option><option value="recent">Ordenar: mais recentes</option></select>
+      <div class="spacer"></div>
+      <button class="btn-ghost" onclick="document.getElementById('import-file').click()"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 2v8m0 0L5 7m3 3l3-3M2 12v2h12v-2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Importar</button>
+      <input type="file" id="import-file" accept=".csv,text/csv" style="display:none" onchange="importCSV(this)">
+      <button class="btn-ghost" onclick="exportCSV()"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M8 1v9m0 0L5 7m3 3l3-3M2 11v3h12v-3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>Exportar</button>
+    </div>
+    <div id="cards" class="cards"></div>
+  </section>
+  <section id="view-users" class="view">
+    <div class="section-title"><h2>Usuários</h2><span class="count" id="users-count"></span></div>
+    <div class="panel" style="padding:6px 6px 0"><table class="utable"><thead><tr><th>Nome</th><th>E-mail</th><th>Função</th><th></th></tr></thead><tbody id="users-body"></tbody></table></div>
+    <div class="panel"><h3>Acesso da equipe</h3><p style="font-size:13.5px;color:var(--muted);margin:0 0 14px">Compartilhe o link do sistema + o <b>código de acesso</b> com cada funcionário. Eles criam a própria conta e passam a ver os mesmos patrimônios, em tempo real.</p><div class="frow"><div class="field"><label>Novo código de acesso</label><input id="cfg-access" placeholder="novo código"><span class="hint">Digite e clique em salvar para trocar.</span></div></div><button class="btn-primary" onclick="updateAccessCode()">Salvar novo código</button></div>
+  </section>
+</div>
+<div class="overlay" id="detail-overlay" onclick="if(event.target===this)closeModal('detail')"><div class="modal" id="detail-modal"></div></div>
+<div class="overlay" id="form-overlay" onclick="if(event.target===this)closeModal('form')">
+  <div class="modal">
+    <div class="modal-head"><div class="mh-text"><h2 id="form-title">Novo patrimônio</h2><div class="mh-sub"><span style="font-size:12.5px;color:var(--muted)">Preencha os dados do ativo</span></div></div><button class="x-close" onclick="closeModal('form')">×</button></div>
+    <div class="modal-body">
+      <div class="fgroup"><div class="fgroup-title">Identificação</div>
+        <div class="frow"><div class="field"><label>Código patrimonial</label><input id="i-code" class="code-input" placeholder="Ex.: PAT-0001 ou SEM TOMBAMENTO" oninput="checkCode()" autocomplete="off"><span class="hint" id="code-hint">Opcional. Em branco ou “SEM TOMBAMENTO” pode repetir; números não.</span></div><div class="field"><label>Nome do item <span class="req">*</span></label><input id="i-name" placeholder="Ex.: Notebook Dell Latitude 5440"></div></div>
+        <div class="frow"><div class="field"><label>Categoria <span class="req">*</span></label><select id="i-cat"></select></div><div class="field"><label>Status <span class="req">*</span></label><select id="i-status"></select></div></div>
+        <div class="frow"><div class="field"><label>Marca</label><input id="i-brand" placeholder="Ex.: Dell"></div><div class="field"><label>Modelo</label><input id="i-model" placeholder="Ex.: Latitude 5440"></div></div>
+        <div class="frow one"><div class="field"><label>Nº de série / IMEI / Placa</label><input id="i-serial" placeholder="Ex.: ABC123"></div></div>
+      </div>
+      <div class="fgroup"><div class="fgroup-title">Lotação &amp; responsabilidade</div>
+        <div class="frow"><div class="field"><label>Setor</label><input id="i-sector" placeholder="Ex.: Financeiro" list="dl-sectors"></div><div class="field"><label>Responsável</label><input id="i-resp" placeholder="Ex.: João Silva" list="dl-resp"></div></div>
+        <div class="frow one"><div class="field"><label>Localização</label><input id="i-loc" placeholder="Ex.: Sala 03 — 2º andar" list="dl-loc"></div></div>
+      </div>
+      <div class="fgroup"><div class="fgroup-title">Aquisição</div>
+        <div class="frow"><div class="field"><label>Data de aquisição</label><input id="i-date" type="date"></div><div class="field"><label>Valor (R$)</label><input id="i-value" inputmode="decimal" placeholder="0,00"></div></div>
+        <div class="frow"><div class="field"><label>Nº da nota fiscal</label><input id="i-nf" placeholder="Ex.: 0012345"></div><div class="field"><label>Fornecedor</label><input id="i-supplier" placeholder="Ex.: Loja XYZ"></div></div>
+      </div>
+      <div class="fgroup" style="margin-bottom:4px"><div class="fgroup-title">Observações</div><div class="frow one"><div class="field"><textarea id="i-notes" placeholder="Garantia, estado de conservação, histórico de manutenção…"></textarea></div></div></div>
+      <datalist id="dl-sectors"></datalist><datalist id="dl-resp"></datalist><datalist id="dl-loc"></datalist>
+    </div>
+    <div class="modal-foot"><button class="btn-cancel" onclick="closeModal('form')">Cancelar</button><button class="btn-save" onclick="saveAsset()"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 8l3.5 3.5L13 5" stroke="#fff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg><span id="save-label">Salvar patrimônio</span></button></div>
+  </div>
+</div>
+</div>
+<div class="toast" id="toast"><span class="tdot"></span><span id="toast-msg"></span></div>
+
+<script type="module">
+/* ============================================================
+   PATRIMÔNIO — Firebase (Auth + Firestore, tempo real)
+   ============================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { getAuth, onAuthStateChanged, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { getFirestore, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, addDoc, onSnapshot, writeBatch } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+/* ===== COLE AQUI A CONFIG DO SEU FIREBASE ===== */
+const firebaseConfig = {
+  apiKey: "AIzaSyBx5emfMraLMiI95QxpTaiSr3U9XNreDkE",
+  authDomain: "patrimonio-macma.firebaseapp.com",
+  projectId: "patrimonio-macma",
+  storageBucket: "patrimonio-macma.firebasestorage.app",
+  messagingSenderId: "973691848032",
+  appId: "1:973691848032:web:247b95626f9a68c3ad0a05"
+};
+/* ============================================== */
+
+const NOT_CONFIGURED = JSON.stringify(firebaseConfig).includes("COLE_AQUI");
+
+const CATEGORIES=["Informática","Impressoras","Móveis","Veículos","Ferramentas","Ar-condicionado","Equipamentos de rede","Celulares corporativos","Eletrônicos","Outros"];
+const STATUSES=[{id:"Em uso",cls:"s-uso"},{id:"Disponível",cls:"s-disp"},{id:"Em manutenção",cls:"s-manut"},{id:"Emprestado",cls:"s-empr"},{id:"Baixado",cls:"s-baixa"}];
+const STATUS_MAP=Object.fromEntries(STATUSES.map(s=>[s.id,s]));
+
+const $=id=>document.getElementById(id);
+const esc=s=>(s==null?"":String(s)).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const validEmail=e=>/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e);
+function brl(n){ if(n==null||n==="")return "—"; const v=Number(n); return isNaN(v)?"—":v.toLocaleString("pt-BR",{style:"currency",currency:"BRL"}); }
+function fdate(s){ if(!s)return "—"; const d=new Date(s+"T00:00:00"); return isNaN(d)?s:d.toLocaleDateString("pt-BR"); }
+function parseValue(s){ if(!s)return null; const n=parseFloat(String(s).replace(/\./g,"").replace(",",".")); return isNaN(n)?null:n; }
+function statusCls(s){ return (STATUS_MAP[s]||{}).cls||"s-disp"; }
+function isRepeatableCode(code){ const c=(code||"").trim(); if(!c)return true; const n=c.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase().replace(/[^A-Z0-9]/g,""); return ["ST","SEMTOMBAMENTO","SEMTOMBO","SEMNUMERO","SEMPATRIMONIO"].includes(n); }
+function toast(m){ $("toast-msg").textContent=m; const t=$("toast"); t.classList.add("show"); clearTimeout(toast._t); toast._t=setTimeout(()=>t.classList.remove("show"),2400); }
+async function sha256(t){ const b=await crypto.subtle.digest("SHA-256",new TextEncoder().encode(t)); return [...new Uint8Array(b)].map(x=>x.toString(16).padStart(2,"0")).join(""); }
+const genSalt=()=>Math.random().toString(36).slice(2)+Date.now().toString(36);
+const hashPass=async(p,s)=>await sha256(s+"::"+p);
+
+let app,auth,db,currentUser=null,assets=[],users=[],hasConfigDoc=false,view="dash",editingId=null,registering=false;
+let unsubAssets=null,unsubUsers=null;
+
+/* ---------- arranque ---------- */
+(async function boot(){
+  CATEGORIES.forEach(c=>{ $("f-cat").insertAdjacentHTML("beforeend",`<option>${c}</option>`); $("i-cat").insertAdjacentHTML("beforeend",`<option>${c}</option>`); });
+  STATUSES.forEach(s=>{ $("f-status").insertAdjacentHTML("beforeend",`<option>${s.id}</option>`); $("i-status").insertAdjacentHTML("beforeend",`<option>${s.id}</option>`); });
+
+  if(NOT_CONFIGURED){ $("full-boot").style.display="none"; $("auth").classList.add("show"); $("cfg-needed").style.display="block"; return; }
+
+  try{
+    app=initializeApp(firebaseConfig); auth=getAuth(app); db=getFirestore(app);
+  }catch(e){ $("full-boot").innerHTML='<div style="max-width:420px;text-align:center;padding:24px"><h3>Erro ao conectar ao Firebase</h3><p style="color:var(--muted);font-size:14px;margin-top:8px">Verifique se a config no arquivo está correta.</p></div>'; return; }
+
+  try{ const c=await getDoc(doc(db,"meta","config")); hasConfigDoc=c.exists(); }catch(e){ hasConfigDoc=false; }
+
+  onAuthStateChanged(auth, async (u)=>{
+    if(registering) return;
+    $("full-boot").style.display="none";
+    if(u){
+      let prof=null; try{ const ps=await getDoc(doc(db,"users",u.uid)); prof=ps.exists()?ps.data():null; }catch(e){}
+      if(!prof){ await signOut(auth); showAuth(); showAuthError("Seu acesso não está liberado. Fale com o administrador."); return; }
+      currentUser={uid:u.uid,...prof};
+      await enterApp();
+    }else{
+      stopSubs(); showAuth();
+    }
+  });
+})();
+
+/* ---------- auth ui ---------- */
+function showAuth(){ $("app").classList.remove("show"); $("auth").classList.add("show"); $("cfg-needed").style.display="none"; $("auth-main").style.display="block"; if(!hasConfigDoc)showFirstRun(); else authTab("login"); }
+function showFirstRun(){ $("auth-tabs").style.display="none"; $("form-login").style.display="none"; $("form-register").style.display="none"; $("form-first").style.display="block"; $("auth-title").textContent="Primeiro acesso"; $("auth-sub").textContent="Crie a conta de administrador e o código de acesso."; }
+function authTab(w){ clearAuthError(); $("auth-tabs").style.display="flex"; $("form-first").style.display="none"; $("tab-login").classList.toggle("active",w==="login"); $("tab-register").classList.toggle("active",w==="register"); $("form-login").style.display=w==="login"?"block":"none"; $("form-register").style.display=w==="register"?"block":"none"; $("auth-title").textContent=w==="login"?"Entrar":"Criar conta"; $("auth-sub").textContent=w==="login"?"Acesse com sua conta da empresa.":"Crie sua conta para acessar o patrimônio."; }
+function showAuthError(m){ const e=$("auth-err"); e.textContent=m; e.classList.add("show"); }
+function clearAuthError(){ $("auth-err").classList.remove("show"); }
+function authMsg(e){ const c=(e&&e.code)||""; if(c.includes("invalid-credential")||c.includes("wrong-password")||c.includes("user-not-found"))return "E-mail ou senha incorretos."; if(c.includes("email-already-in-use"))return "Já existe uma conta com este e-mail."; if(c.includes("weak-password"))return "Senha muito fraca (mínimo 6 caracteres)."; if(c.includes("invalid-email"))return "E-mail inválido."; if(c.includes("too-many-requests"))return "Muitas tentativas. Aguarde um pouco."; if(c.includes("network"))return "Sem conexão com o servidor."; return "Erro: "+(e.message||c||"tente novamente"); }
+
+async function doFirst(){
+  clearAuthError();
+  const name=$("f-name").value.trim(), email=$("f-email").value.trim().toLowerCase(), pass=$("f-pass").value, access=$("f-access").value.trim();
+  if(!name)return showAuthError("Informe seu nome.");
+  if(!validEmail(email))return showAuthError("E-mail inválido.");
+  if(pass.length<6)return showAuthError("A senha precisa ter ao menos 6 caracteres.");
+  if(access.length<3)return showAuthError("Crie um código de acesso (mín. 3 caracteres).");
+  $("btn-first").disabled=true; registering=true;
+  try{
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    const cs=genSalt();
+    await setDoc(doc(db,"meta","config"),{accessSalt:cs,accessHash:await hashPass(access,cs),createdAt:Date.now()});
+    await setDoc(doc(db,"users",cred.user.uid),{name,email,role:"admin",createdAt:Date.now()});
+    currentUser={uid:cred.user.uid,name,email,role:"admin"}; hasConfigDoc=true; registering=false;
+    await enterApp();
+  }catch(e){ registering=false; showAuthError(authMsg(e)); }
+  $("btn-first").disabled=false;
+}
+async function doRegister(){
+  clearAuthError();
+  const name=$("r-name").value.trim(), email=$("r-email").value.trim().toLowerCase(), pass=$("r-pass").value, access=$("r-access").value.trim();
+  if(!name)return showAuthError("Informe seu nome.");
+  if(!validEmail(email))return showAuthError("E-mail inválido.");
+  if(pass.length<6)return showAuthError("A senha precisa ter ao menos 6 caracteres.");
+  $("btn-register").disabled=true;
+  try{
+    const cs=await getDoc(doc(db,"meta","config"));
+    if(cs.exists()){ const cfg=cs.data(); if((await hashPass(access,cfg.accessSalt))!==cfg.accessHash){ $("btn-register").disabled=false; return showAuthError("Código de acesso da empresa incorreto."); } }
+    registering=true;
+    const cred=await createUserWithEmailAndPassword(auth,email,pass);
+    await setDoc(doc(db,"users",cred.user.uid),{name,email,role:"user",createdAt:Date.now()});
+    currentUser={uid:cred.user.uid,name,email,role:"user"}; registering=false;
+    await enterApp();
+  }catch(e){ registering=false; showAuthError(authMsg(e)); }
+  $("btn-register").disabled=false;
+}
+async function doLogin(){
+  clearAuthError();
+  const email=$("l-email").value.trim().toLowerCase(), pass=$("l-pass").value;
+  if(!email||!pass)return showAuthError("Informe e-mail e senha.");
+  $("btn-login").disabled=true;
+  try{ await signInWithEmailAndPassword(auth,email,pass); }catch(e){ showAuthError(authMsg(e)); }
+  $("btn-login").disabled=false;
+}
+async function doLogout(){ if(!confirm("Sair da sua conta?"))return; stopSubs(); await signOut(auth); currentUser=null; ["l-email","l-pass","r-name","r-email","r-pass","r-access"].forEach(id=>{ if($(id))$(id).value=""; }); }
+
+/* ---------- app ---------- */
+async function enterApp(){
+  $("auth").classList.remove("show"); $("app").classList.add("show");
+  $("u-name").textContent=currentUser.name; $("u-role").textContent=currentUser.role==="admin"?"administrador":"membro";
+  $("u-avatar").textContent=(currentUser.name||"U").trim().charAt(0).toUpperCase();
+  $("tab-users").style.display=currentUser.role==="admin"?"":"none";
+  subscribeAssets();
+  if(currentUser.role==="admin")subscribeUsers();
+  $("search").oninput=()=>{ if(view==="list")renderList(); else { setView("list"); ["f-cat","f-status","f-sector"].forEach(id=>$(id).value=""); renderList(); } };
+}
+function stopSubs(){ if(unsubAssets){unsubAssets();unsubAssets=null;} if(unsubUsers){unsubUsers();unsubUsers=null;} }
+
+function flashSync(){ const c=$("sync-chip"); c.classList.add("busy"); $("sync-text").textContent="atualizado"; setTimeout(()=>{c.classList.remove("busy");$("sync-text").textContent="tempo real";},900); }
+
+function subscribeAssets(){
+  if(unsubAssets)unsubAssets();
+  unsubAssets=onSnapshot(collection(db,"assets"),(snap)=>{
+    assets=snap.docs.map(d=>({id:d.id,...d.data()}));
+    $("boot").style.display="none";
+    if(view==="dash"||view==="list")render(); flashSync();
+  },(err)=>{ console.error(err); $("boot").style.display="none"; toast("Erro ao sincronizar (verifique as regras do Firestore)"); });
+  setView("dash");
+}
+function subscribeUsers(){
+  if(unsubUsers)unsubUsers();
+  unsubUsers=onSnapshot(collection(db,"users"),(snap)=>{ users=snap.docs.map(d=>({id:d.id,...d.data()})); if(view==="users")renderUsers(); });
+}
+
+function setView(v){
+  view=v;
+  document.querySelectorAll(".view").forEach(el=>el.classList.remove("show"));
+  $("view-"+v).classList.add("show");
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active",t.dataset.view===v));
+  if(v==="dash")renderDashboard(); else if(v==="list")renderList(); else if(v==="users")renderUsers();
+  window.scrollTo({top:0,behavior:"smooth"});
+}
+function render(){ rebuildSectorFilter(); if(view==="dash")renderDashboard(); else if(view==="list")renderList(); }
+
+/* ---------- dashboard ---------- */
+function renderDashboard(){
+  const total=assets.length, inUse=assets.filter(a=>a.status==="Em uso").length, maint=assets.filter(a=>a.status==="Em manutenção").length, avail=assets.filter(a=>a.status==="Disponível").length;
+  $("kpis").innerHTML=`${kpi("Total de itens",total,total===1?"item cadastrado":"itens cadastrados","var(--ink)")}${kpi("Em uso",inUse,pct(inUse,total)+" do total","var(--ok)")}${kpi("Em manutenção",maint,maint===0?"nenhum parado":"requer atenção","var(--warn)")}${kpi("Disponíveis",avail,avail===1?"item livre":"itens livres","var(--info)")}`;
+  const catCounts=countBy("category"), maxCat=Math.max(1,...Object.values(catCounts));
+  $("cat-total").textContent=total?`· ${Object.keys(catCounts).length} categorias`:"";
+  $("cat-bars").innerHTML=total?Object.entries(catCounts).sort((a,b)=>b[1]-a[1]).map(([k,v])=>`<div class="barrow"><div class="nm" title="${esc(k)}">${esc(k)}</div><div class="bar-track"><div class="bar-fill" style="width:${v/maxCat*100}%"></div></div><div class="vl">${v}</div></div>`).join(""):emptyMini("Nenhuma categoria ainda");
+  const sc={"Em uso":"#16895C","Disponível":"#2767B8","Em manutenção":"#B5781A","Emprestado":"#6A4FC2","Baixado":"#BC3B33"};
+  const sCounts=countBy("status"); $("donut-num").textContent=total; let acc=0; const segs=[];
+  STATUSES.forEach(s=>{ const c=sCounts[s.id]||0; if(c>0){ const st=acc/Math.max(total,1)*360; acc+=c; const en=acc/Math.max(total,1)*360; segs.push(`${sc[s.id]} ${st}deg ${en}deg`); } });
+  $("donut").style.background=total?`conic-gradient(${segs.join(",")})`:"var(--line-2)";
+  $("status-legend").innerHTML=STATUSES.map(s=>`<div class="leg"><span class="dot" style="background:${sc[s.id]}"></span><span class="nm">${s.id}</span><span class="vl">${sCounts[s.id]||0}</span></div>`).join("");
+  const secCounts=countBy("sector",true), maxSec=Math.max(1,...Object.values(secCounts));
+  $("sector-bars").innerHTML=Object.keys(secCounts).length?Object.entries(secCounts).sort((a,b)=>b[1]-a[1]).slice(0,8).map(([k,v])=>`<div class="barrow"><div class="nm" title="${esc(k)}">${esc(k)}</div><div class="bar-track"><div class="bar-fill" style="width:${v/maxSec*100}%;background:linear-gradient(90deg,#C49A47,#8A621A)"></div></div><div class="vl">${v}</div></div>`).join(""):emptyMini("Cadastre itens para ver os setores");
+  const recent=[...assets].sort((a,b)=>(b.createdAt||0)-(a.createdAt||0)).slice(0,6);
+  $("recent").innerHTML=recent.length?recent.map(a=>`<div class="recent-item" onclick="openDetail('${a.id}')"><span class="ri-code">${esc(a.code||"—")}</span><div style="flex:1;min-width:0"><div class="ri-name">${esc(a.name)}</div><div class="ri-meta">${esc(a.category||"—")} · ${esc(a.sector||"sem setor")}</div></div><span class="pill ${statusCls(a.status)}"><span class="dot"></span>${esc(a.status)}</span></div>`).join(""):`<div class="empty" style="padding:30px 10px"><p style="margin-bottom:16px">Nenhum patrimônio cadastrado ainda.</p><div class="empty-actions"><button class="btn-primary" onclick="openForm()">+ Cadastrar primeiro item</button><button class="btn-gold" onclick="seedExamples()">Carregar exemplos</button></div></div>`;
+}
+function kpi(l,n,s,c){ return `<div class="kpi"><div class="lab"><span class="dot" style="background:${c}"></span>${l}</div><div class="num">${n}</div><div class="sub">${s}</div></div>`; }
+function emptyMini(t){ return `<div style="color:var(--muted-2);font-size:13px;padding:14px 0">${t}</div>`; }
+function pct(n,t){ return t?Math.round(n/t*100)+"%":"0%"; }
+function countBy(f,blank){ const o={}; assets.forEach(a=>{ let k=a[f]; if(!k){ if(blank)k="Não informado"; else return; } o[k]=(o[k]||0)+1; }); return o; }
+
+/* ---------- list ---------- */
+function rebuildSectorFilter(){ const sel=$("f-sector"),cur=sel.value; const secs=[...new Set(assets.map(a=>a.sector).filter(Boolean))].sort(); sel.innerHTML='<option value="">Todos os setores</option>'+secs.map(s=>`<option>${esc(s)}</option>`).join(""); if(secs.includes(cur))sel.value=cur; fillDatalist("dl-sectors","sector"); fillDatalist("dl-resp","responsible"); fillDatalist("dl-loc","location"); }
+function fillDatalist(id,f){ const v=[...new Set(assets.map(a=>a[f]).filter(Boolean))].sort(); $(id).innerHTML=v.map(x=>`<option value="${esc(x)}">`).join(""); }
+function getFiltered(){
+  const q=$("search").value.trim().toLowerCase(), fc=$("f-cat").value, fs=$("f-status").value, fsec=$("f-sector").value, sort=$("f-sort").value;
+  let r=assets.filter(a=>{ if(fc&&a.category!==fc)return false; if(fs&&a.status!==fs)return false; if(fsec&&a.sector!==fsec)return false; if(q){ const b=[a.code,a.name,a.brand,a.model,a.serial,a.responsible,a.sector,a.location,a.category].join(" ").toLowerCase(); if(!b.includes(q))return false; } return true; });
+  r.sort((a,b)=>{ if(sort==="name")return (a.name||"").localeCompare(b.name||"","pt"); if(sort==="recent")return (b.createdAt||0)-(a.createdAt||0); return (a.code||"~").localeCompare(b.code||"~","pt",{numeric:true}); });
+  return r;
+}
+function renderList(){
+  rebuildSectorFilter();
+  const list=getFiltered();
+  $("list-count").textContent=assets.length?`${list.length} de ${assets.length} ${assets.length===1?"item":"itens"}`:"";
+  const box=$("cards");
+  if(assets.length===0){ box.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="ic"><svg width="30" height="30" viewBox="0 0 24 24" fill="none"><path d="M3 8l9-5 9 5v8l-9 5-9-5V8z" stroke="#8A621A" stroke-width="1.6" stroke-linejoin="round"/><path d="M3 8l9 5 9-5M12 13v8" stroke="#8A621A" stroke-width="1.6" stroke-linejoin="round"/></svg></div><h3>Nenhum patrimônio cadastrado</h3><p>Cadastre o primeiro item ou carregue exemplos.</p><div class="empty-actions"><button class="btn-primary" onclick="openForm()">+ Cadastrar item</button><button class="btn-gold" onclick="seedExamples()">Carregar exemplos</button></div></div>`; return; }
+  if(list.length===0){ box.innerHTML=`<div class="empty" style="grid-column:1/-1"><h3>Nada encontrado</h3><p>Nenhum item corresponde aos filtros.</p><div class="empty-actions"><button class="btn-ghost" onclick="clearFilters()">Limpar filtros</button></div></div>`; return; }
+  box.innerHTML=list.map(cardHTML).join("");
+}
+function clearFilters(){ $("search").value="";["f-cat","f-status","f-sector"].forEach(id=>$(id).value=""); renderList(); }
+function cardHTML(a){ const cc=a.code?"code-badge":"code-badge empty"; return `<div class="acard" onclick="openDetail('${a.id}')"><div class="acard-top"><span class="${cc}">${esc(a.code||"sem código")}</span><span class="pill ${statusCls(a.status)}"><span class="dot"></span>${esc(a.status||"—")}</span></div><div class="acard-name">${esc(a.name)}</div><div class="acard-tags"><span class="tag">${esc(a.category||"Sem categoria")}</span>${a.brand?`<span class="tag"><b>${esc(a.brand)}</b>${a.model?" "+esc(a.model):""}</span>`:""}</div><div class="acard-foot"><span class="ff"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="5" r="3" stroke="currentColor" stroke-width="1.4"/><path d="M2.5 14a5.5 5.5 0 0111 0" stroke="currentColor" stroke-width="1.4" stroke-linecap="round"/></svg><b>${esc(a.responsible||"Sem responsável")}</b></span><span class="ff"><svg width="13" height="13" viewBox="0 0 16 16" fill="none"><path d="M8 1.5c2.5 0 4.5 2 4.5 4.4C12.5 9.5 8 14.5 8 14.5S3.5 9.5 3.5 5.9C3.5 3.5 5.5 1.5 8 1.5z" stroke="currentColor" stroke-width="1.3"/><circle cx="8" cy="6" r="1.6" stroke="currentColor" stroke-width="1.3"/></svg>${esc(a.location||"—")}</span></div></div>`; }
+
+/* ---------- detail ---------- */
+function openDetail(id){
+  const a=assets.find(x=>x.id===id); if(!a)return;
+  const f=(k,v,mono)=>`<div class="det-f"><div class="k">${k}</div><div class="v ${mono?"mono":""}">${v?esc(v):"—"}</div></div>`;
+  const by=a.createdByName?`Cadastrado por ${esc(a.createdByName)}`:""; const ed=a.updatedByName?` · última edição por ${esc(a.updatedByName)}`:"";
+  $("detail-modal").innerHTML=`<div class="modal-head"><div class="mh-text"><h2>${esc(a.name)}</h2><div class="mh-sub"><span class="code-badge ${a.code?"":"empty"}">${esc(a.code||"sem código")}</span><span class="pill ${statusCls(a.status)}"><span class="dot"></span>${esc(a.status||"—")}</span></div></div><button class="x-close" onclick="closeModal('detail')">×</button></div><div class="modal-body"><div class="det-grid">${f("Categoria",a.category)}${f("Setor",a.sector)}${f("Marca",a.brand)}${f("Modelo",a.model)}${f("Nº de série / IMEI / Placa",a.serial,true)}${f("Responsável",a.responsible)}${f("Localização",a.location)}${f("Status",a.status)}${f("Data de aquisição",fdate(a.date))}${f("Valor",brl(a.value),true)}${f("Nota fiscal",a.nf,true)}${f("Fornecedor",a.supplier)}${a.notes?`<div class="det-f full"><div class="k">Observações</div><div class="v">${esc(a.notes)}</div></div>`:""}</div><div class="qr-box"><div class="qr-canvas" id="qr-canvas"></div><div class="qr-txt"><h4>Etiqueta digital</h4><p>Aponte a câmera do celular para o QR Code e veja os dados deste patrimônio na hora.</p></div></div>${(by||ed)?`<div class="det-meta">${by}${ed}</div>`:""}<div class="det-actions"><button class="btn-edit" onclick="openForm('${a.id}')"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M11.5 2.5l2 2L6 12l-2.5.5L4 10l7.5-7.5z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>Editar</button><button class="btn-del" onclick="deleteAsset('${a.id}')"><svg width="15" height="15" viewBox="0 0 16 16" fill="none"><path d="M3 4h10M6 4V2.5h4V4M5 4l.6 9h4.8L11 4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/></svg>Excluir</button></div></div>`;
+  openModal("detail");
+  const txt=`PATRIMÔNIO ${a.code||"(sem código)"}\nNome: ${a.name}\nCategoria: ${a.category||"-"}\nMarca/Modelo: ${[a.brand,a.model].filter(Boolean).join(" ")||"-"}\nSérie: ${a.serial||"-"}\nSetor: ${a.sector||"-"}\nResponsável: ${a.responsible||"-"}\nLocal: ${a.location||"-"}\nStatus: ${a.status||"-"}`;
+  const box=$("qr-canvas");
+  try{ if(typeof QRious!=="undefined"){ const c=document.createElement("canvas"); new QRious({element:c,value:txt,size:200,level:"M",foreground:"#0F2433",background:"#ffffff"}); box.appendChild(c); } else box.innerHTML='<div class="qr-fallback">QR indisponível</div>'; }catch(e){ box.innerHTML='<div class="qr-fallback">QR indisponível</div>'; }
+}
+
+/* ---------- form ---------- */
+function openForm(id){
+  editingId=id||null; const a=id?assets.find(x=>x.id===id):null;
+  $("form-title").textContent=a?"Editar patrimônio":"Novo patrimônio";
+  $("save-label").textContent=a?"Salvar alterações":"Salvar patrimônio";
+  $("i-code").value=a?(a.code||""):""; $("i-code").style.borderColor="";
+  $("i-name").value=a?.name||""; $("i-cat").value=a?.category||"Informática"; $("i-status").value=a?.status||"Em uso";
+  $("i-brand").value=a?.brand||""; $("i-model").value=a?.model||""; $("i-serial").value=a?.serial||"";
+  $("i-sector").value=a?.sector||""; $("i-resp").value=a?.responsible||""; $("i-loc").value=a?.location||"";
+  $("i-date").value=a?.date||""; $("i-value").value=a?.value!=null?Number(a.value).toLocaleString("pt-BR",{minimumFractionDigits:2}):"";
+  $("i-nf").value=a?.nf||""; $("i-supplier").value=a?.supplier||""; $("i-notes").value=a?.notes||"";
+  rebuildSectorFilter(); checkCode(); openModal("form"); setTimeout(()=>$("i-name").focus(),120);
+}
+function setHint(t,c){ const el=$("code-hint"); if(!el)return; el.innerHTML=t; el.style.color=c||"var(--muted-2)"; }
+function checkCode(){
+  const el=$("i-code"); if(!el)return; const code=el.value.trim();
+  if(!code){ el.style.borderColor=""; setHint("Opcional. Em branco ou “SEM TOMBAMENTO” pode repetir; números não.","var(--muted-2)"); return; }
+  if(isRepeatableCode(code)){ el.style.borderColor="var(--gold-line)"; setHint("Sem tombamento — este código pode repetir.","var(--gold)"); return; }
+  const dupe=assets.find(x=>(x.code||"").toLowerCase()===code.toLowerCase() && x.id!==editingId);
+  if(dupe){ el.style.borderColor="var(--bad)"; setHint("⚠ Já existe um item com este código.","var(--bad)"); }
+  else{ el.style.borderColor="var(--ok)"; setHint("✓ Código disponível.","var(--ok)"); }
+}
+async function saveAsset(){
+  const code=$("i-code").value.trim(), name=$("i-name").value.trim();
+  $("i-name").style.borderColor="";
+  if(!name){ toast("Informe o nome do item"); $("i-name").focus(); $("i-name").style.borderColor="var(--bad)"; return; }
+  if(!isRepeatableCode(code) && assets.some(x=>(x.code||"").toLowerCase()===code.toLowerCase() && x.id!==editingId)){ toast("Já existe um item com o código "+code); $("i-code").focus(); $("i-code").style.borderColor="var(--bad)"; return; }
+  const data={ name,code,category:$("i-cat").value,status:$("i-status").value,brand:$("i-brand").value.trim(),model:$("i-model").value.trim(),serial:$("i-serial").value.trim(),sector:$("i-sector").value.trim(),responsible:$("i-resp").value.trim(),location:$("i-loc").value.trim(),date:$("i-date").value,value:parseValue($("i-value").value),nf:$("i-nf").value.trim(),supplier:$("i-supplier").value.trim(),notes:$("i-notes").value.trim() };
+  try{
+    if(editingId){ await updateDoc(doc(db,"assets",editingId),{...data,updatedByName:currentUser.name,updatedAt:Date.now()}); toast("Alterações salvas"); }
+    else{ await addDoc(collection(db,"assets"),{...data,createdByName:currentUser.name,createdAt:Date.now()}); toast("Patrimônio cadastrado"); }
+    closeModal("form");
+  }catch(e){ console.error(e); toast("Erro ao salvar. Verifique sua conexão."); }
+}
+async function deleteAsset(id){
+  const a=assets.find(x=>x.id===id); if(!a)return;
+  if(!confirm(`Excluir o patrimônio ${a.code||"(sem código)"} — "${a.name}"?\n\nVale para todos os usuários e não pode ser desfeito.`))return;
+  try{ await deleteDoc(doc(db,"assets",id)); closeModal("detail"); toast("Patrimônio excluído"); }catch(e){ toast("Erro ao excluir."); }
+}
+
+/* ---------- seed ---------- */
+async function seedExamples(){
+  const now=Date.now();
+  const ex=[
+    ["PAT-0001","Notebook Dell Latitude 5440","Informática","Em uso","Dell","Latitude 5440","ABC123","Financeiro","João Silva","Sala 03 — 2º andar","2024-02-10",4800,"012345","Dell Brasil",""],
+    ["PAT-0002","Impressora HP LaserJet Pro M404","Impressoras","Em uso","HP","LaserJet Pro M404dn","HPX99827","Administrativo","Maria Souza","Recepção","2023-08-22",2100,"008812","Kalunga","Toner reserva"],
+    ["PAT-0003","Fiat Strada Endurance 1.4","Veículos","Em uso","Fiat","Strada 2023","QRA1D23","Logística","Carlos Lima","Garagem","2023-01-15",92000,"VEIC-001","Concessionária","Revisão 10.000 km"],
+    ["PAT-0004","Ar-condicionado Split 12.000 BTUs","Ar-condicionado","Em manutenção","LG","Dual Inverter","LG44521C","Comercial","","Sala 02","2022-11-05",2300,"AC-9981","Friopeças","Aguardando placa"],
+    ["PAT-0005","Switch Cisco 24 portas","Equipamentos de rede","Em uso","Cisco","Catalyst 1000","CS24P77","TI","Pedro Alves","Rack CPD","2023-05-30",3500,"NET-441","TechNet","Gerenciável L2"],
+    ["PAT-0006","iPhone 13 corporativo","Celulares corporativos","Emprestado","Apple","iPhone 13 128GB","357889104","Diretoria","Ana Paula","Uso externo","2023-03-12",5200,"CEL-220","iPlace","Linha corporativa"],
+    ["PAT-0007","Cadeira Presidente couro","Móveis","Em uso","Flexform","Ergon Pro","","Diretoria","","Sala 01","2022-06-18",1400,"MOV-77","Móveis Brasil",""],
+    ["PAT-0008","Furadeira de Impacto 750W","Ferramentas","Disponível","Bosch","GSB 16 RE","BSH7781","Manutenção","José Reis","Almoxarifado","2023-09-01",650,"FER-310","Leroy","Maleta com brocas"],
+    ["SEM TOMBAMENTO","Cabo de rede CAT6 avulso","Equipamentos de rede","Disponível","","","","TI","","Almoxarifado","",null,"","",""],
+    ["SEM TOMBAMENTO","Extensão elétrica 5m","Outros","Disponível","","","","Manutenção","","Almoxarifado","",null,"","",""],
+  ];
+  try{
+    const batch=writeBatch(db);
+    ex.forEach((e,i)=>{ const code=e[0]; if(!isRepeatableCode(code)&&assets.some(a=>(a.code||"").toLowerCase()===code.toLowerCase()))return; const ref=doc(collection(db,"assets")); batch.set(ref,{createdAt:now+i,createdByName:currentUser?currentUser.name:"sistema",code,name:e[1],category:e[2],status:e[3],brand:e[4],model:e[5],serial:e[6],sector:e[7],responsible:e[8],location:e[9],date:e[10],value:e[11],nf:e[12],supplier:e[13],notes:e[14]}); });
+    await batch.commit(); toast("Exemplos carregados");
+  }catch(e){ console.error(e); toast("Erro ao carregar exemplos"); }
+}
+
+/* ---------- export / import ---------- */
+function exportCSV(){
+  if(assets.length===0){ toast("Nada para exportar ainda"); return; }
+  const cols=[["code","Código"],["name","Nome"],["category","Categoria"],["brand","Marca"],["model","Modelo"],["serial","Nº Série"],["sector","Setor"],["responsible","Responsável"],["location","Localização"],["status","Status"],["date","Data aquisição"],["value","Valor (R$)"],["nf","Nota fiscal"],["supplier","Fornecedor"],["notes","Observações"]];
+  const q=v=>'"'+String(v==null?"":v).replace(/"/g,'""')+'"';
+  const head=cols.map(c=>q(c[1])).join(";");
+  const rows=getFiltered().map(a=>cols.map(c=>{ let v=a[c[0]]; if(c[0]==="value"&&v!=null)v=Number(v).toFixed(2).replace(".",","); if(c[0]==="date")v=fdate(v); return q(v); }).join(";"));
+  const csv="\uFEFF"+[head,...rows].join("\r\n");
+  const blob=new Blob([csv],{type:"text/csv;charset=utf-8;"}),url=URL.createObjectURL(blob),a=document.createElement("a");
+  a.href=url; a.download="patrimonio_"+new Date().toISOString().slice(0,10)+".csv"; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(()=>URL.revokeObjectURL(url),1000); toast("Planilha exportada");
+}
+function parseCSV(text,delim){ const rows=[];let row=[],cur="",q=false; for(let i=0;i<text.length;i++){ const c=text[i]; if(q){ if(c==='"'){ if(text[i+1]==='"'){cur+='"';i++;} else q=false; } else cur+=c; } else { if(c==='"')q=true; else if(c===delim){row.push(cur);cur="";} else if(c==='\n'){row.push(cur);rows.push(row);row=[];cur="";} else if(c==='\r'){} else cur+=c; } } if(cur!==""||row.length){row.push(cur);rows.push(row);} return rows; }
+function parseBRDate(s){ if(!s)return ""; s=s.trim(); const m=/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/.exec(s); if(m)return `${m[3]}-${m[2].padStart(2,"0")}-${m[1].padStart(2,"0")}`; if(/^\d{4}-\d{2}-\d{2}$/.test(s))return s; return ""; }
+function importCSV(input){
+  const file=input.files&&input.files[0]; if(!file)return;
+  const reader=new FileReader();
+  reader.onload=async ()=>{
+    try{
+      let text=String(reader.result||""); if(text.charCodeAt(0)===0xFEFF)text=text.slice(1);
+      const first=text.split("\n")[0]||"", delim=first.split(";").length>=first.split(",").length?";":",";
+      const rows=parseCSV(text,delim).filter(r=>r.some(c=>String(c).trim()!==""));
+      if(rows.length<2){ toast("Arquivo vazio ou inválido"); input.value=""; return; }
+      const head=rows[0].map(h=>String(h).trim().toLowerCase()), col=(...n)=>{ for(const x of n){ const i=head.indexOf(x); if(i>=0)return i; } return -1; };
+      const idx={code:col("código","codigo"),name:col("nome"),category:col("categoria"),brand:col("marca"),model:col("modelo"),serial:col("nº série","n° série","nº serie","serie","série"),sector:col("setor"),responsible:col("responsável","responsavel"),location:col("localização","localizacao"),status:col("status"),date:col("data aquisição","data aquisicao","data"),value:col("valor (r$)","valor"),nf:col("nota fiscal","nf"),supplier:col("fornecedor"),notes:col("observações","observacoes","obs")};
+      if(idx.code<0||idx.name<0){ toast("O arquivo precisa ter as colunas Código e Nome"); input.value=""; return; }
+      const cell=(r,i)=>i>=0&&i<r.length?String(r[i]).trim():"";
+      const seen=new Set(assets.map(a=>(a.code||"").toLowerCase()));
+      const toAdd=[]; let skipped=0; const now=Date.now();
+      rows.slice(1).forEach((r,k)=>{
+        const code=cell(r,idx.code), name=cell(r,idx.name); if(!name){ skipped++; return; }
+        if(!isRepeatableCode(code) && seen.has(code.toLowerCase())){ skipped++; return; }
+        if(!isRepeatableCode(code))seen.add(code.toLowerCase());
+        toAdd.push({createdAt:now+k,createdByName:currentUser?currentUser.name:"importação",code,name,category:cell(r,idx.category)||"Outros",status:cell(r,idx.status)||"Em uso",brand:cell(r,idx.brand),model:cell(r,idx.model),serial:cell(r,idx.serial),sector:cell(r,idx.sector),responsible:cell(r,idx.responsible),location:cell(r,idx.location),date:parseBRDate(cell(r,idx.date)),value:parseValue(cell(r,idx.value)),nf:cell(r,idx.nf),supplier:cell(r,idx.supplier),notes:cell(r,idx.notes)});
+      });
+      // grava em lotes de 400
+      for(let i=0;i<toAdd.length;i+=400){ const batch=writeBatch(db); toAdd.slice(i,i+400).forEach(d=>batch.set(doc(collection(db,"assets")),d)); await batch.commit(); }
+      toast(toAdd.length+" item(ns) importado(s)"+(skipped?` · ${skipped} ignorado(s)`:""));
+    }catch(e){ console.error(e); toast("Não consegui importar o arquivo"); }
+    input.value="";
+  };
+  reader.readAsText(file,"UTF-8");
+}
+
+/* ---------- users ---------- */
+function renderUsers(){
+  if(!currentUser||currentUser.role!=="admin"){ setView("dash"); return; }
+  $("users-count").textContent=`${users.length} ${users.length===1?"pessoa":"pessoas"} com acesso`;
+  $("users-body").innerHTML=users.map(u=>`<tr><td><b>${esc(u.name||"—")}</b>${u.id===currentUser.uid?' <span class="u-you">(você)</span>':""}</td><td style="color:var(--muted)">${esc(u.email||"")}</td><td><span class="role-badge ${u.role==="admin"?"role-admin":"role-user"}">${u.role==="admin"?"Admin":"Membro"}</span></td><td style="text-align:right">${u.id!==currentUser.uid?`<button class="u-remove" onclick="removeUser('${u.id}','${esc(u.name||"").replace(/'/g,"")}')">Remover</button>`:""}</td></tr>`).join("");
+}
+async function removeUser(id,name){
+  if(!confirm(`Remover o acesso de ${name||"este usuário"}? Ele não conseguirá mais ver os dados.\n\nObs.: para apagar de vez o login, remova também em Authentication no console do Firebase.`))return;
+  try{ await deleteDoc(doc(db,"users",id)); toast("Acesso removido"); }catch(e){ toast("Erro ao remover"); }
+}
+async function updateAccessCode(){
+  const v=$("cfg-access").value.trim(); if(v.length<3){ toast("Mínimo 3 caracteres"); return; }
+  try{ const cs=genSalt(); await setDoc(doc(db,"meta","config"),{accessSalt:cs,accessHash:await hashPass(v,cs)},{merge:true}); $("cfg-access").value=""; toast("Código de acesso atualizado"); }catch(e){ toast("Erro ao salvar código"); }
+}
+
+/* ---------- modal ---------- */
+function openModal(w){ $(w+"-overlay").classList.add("show"); document.body.style.overflow="hidden"; }
+function closeModal(w){ $(w+"-overlay").classList.remove("show"); if(!$("detail-overlay").classList.contains("show")&&!$("form-overlay").classList.contains("show"))document.body.style.overflow=""; }
+document.addEventListener("keydown",e=>{ if(e.key==="Escape"){ closeModal("detail"); closeModal("form"); } });
+
+Object.assign(window,{authTab,doFirst,doRegister,doLogin,doLogout,setView,openForm,openDetail,saveAsset,deleteAsset,seedExamples,exportCSV,importCSV,checkCode,closeModal,renderList,clearFilters,renderUsers,removeUser,updateAccessCode});
+</script>
+</body>
+</html>
